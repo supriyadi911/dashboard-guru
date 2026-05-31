@@ -81,7 +81,7 @@
             color: inherit;
         }
 
-        /* === LOADING SCREEN === */
+        /* === COOL LOADING SCREEN === */
         #loader {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -91,16 +91,60 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.6s cubic-bezier(0.8, 0, 0.2, 1), transform 0.6s cubic-bezier(0.8, 0, 0.2, 1);
+            backdrop-filter: blur(10px);
         }
-        .spinner {
-            width: 50px; height: 50px;
-            border: 5px solid var(--text-muted);
+        .loader-logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: floatLogo 3s ease-in-out infinite;
+        }
+        .loader-logo {
+            width: 70px;
+            height: 70px;
+            object-fit: contain;
+            z-index: 2;
+            animation: pulseLogo 1.5s infinite alternate;
+        }
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
             border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+            border-bottom-color: var(--accent);
+            border-radius: 0; /* Tetap mempertahankan sudut tajam / boxy */
+            animation: spinRing 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes spinRing {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+        @keyframes pulseLogo {
+            0% { transform: scale(0.9); filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.5)); }
+            100% { transform: scale(1.1); filter: drop-shadow(0 0 25px rgba(245, 158, 11, 0.8)); }
+        }
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        #loader-text {
+            margin-top: 2.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: pulseText 1.5s infinite alternate;
+        }
+        @keyframes pulseText {
+            0% { opacity: 0.5; transform: scale(0.95); letter-spacing: 2px; }
+            100% { opacity: 1; transform: scale(1); letter-spacing: 4px; }
+        }
 
         /* === LAYOUT === */
         .app-container {
@@ -702,9 +746,23 @@
 
     <!-- Loading Screen -->
     <div id="loader">
-        <div class="spinner"></div>
-        <h3 style="margin-top: 1rem; color: var(--primary);">Memuat Dashboard...</h3>
+        <div class="loader-logo-container">
+            <div class="loader-ring"></div>
+            <img src="" alt="Logo Sekolah" id="loader-logo" class="loader-logo">
+        </div>
+        <h3 id="loader-text">Memuat Dashboard</h3>
     </div>
+    
+    <!-- Script Kecil untuk langsung memuat logo sebelum seluruh halaman selesai dirender -->
+    <script>
+        (function() {
+            try {
+                const p = JSON.parse(localStorage.getItem('GURU_DASHBOARD_PROFILE')) || {};
+                const lUrl = p.schoolLogo || 'https://i.ibb.co.com/1fT4ZJrg/logo-sdn-1-dupaaa.png';
+                document.getElementById('loader-logo').src = lUrl;
+            } catch(e){}
+        })();
+    </script>
 
     <div class="app-container">
         <!-- Top Header -->
@@ -1010,7 +1068,7 @@
             avatar: "",
             position: "-",
             className: "-",
-            schoolLogo: ""
+            schoolLogo: "https://i.ibb.co.com/1fT4ZJrg/logo-sdn-1-dupaaa.png"
         };
 
         const defaultCategories = ["Pembelajaran", "Administrasi", "Penilaian", "Modul Ajar", "Kalender Pendidikan", "Projek P5", "Perangkat Kurikulum", "Arsip Sekolah"];
@@ -1109,9 +1167,11 @@
 
             // Hide Loader
             setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-            }, 800);
+                const loaderEl = document.getElementById('loader');
+                loaderEl.style.opacity = '0';
+                loaderEl.style.transform = 'scale(1.1)'; // Efek membesar perlahan saat menghilang
+                setTimeout(() => loaderEl.style.display = 'none', 600);
+            }, 1800); // Waktu diperpanjang sedikit agar animasi keren ini sempat dinikmati pengguna
 
             // Populate Settings Form
             populateSettingsForm();
@@ -1570,7 +1630,7 @@
             // Hero Detail
             const heroLogo = document.getElementById('hero-logo');
             const heroSchoolName = document.getElementById('hero-school-name');
-            const globalLogoUrl = profile.schoolLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.schoolName || 'SD')}&background=F59E0B&color=fff`;
+            const globalLogoUrl = profile.schoolLogo || 'https://i.ibb.co.com/1fT4ZJrg/logo-sdn-1-dupaaa.png';
             
             if (heroSchoolName) heroSchoolName.textContent = profile.schoolName || '-';
             if (heroLogo) heroLogo.src = globalLogoUrl;
@@ -1601,7 +1661,7 @@
             document.getElementById('set-schoolName').value = profile.schoolName || '';
             document.getElementById('set-year').value = profile.year || '';
             document.getElementById('set-avatar').value = profile.avatar === `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.teacherName)}&background=2563EB&color=fff` ? '' : (profile.avatar || '');
-            document.getElementById('set-schoolLogo').value = profile.schoolLogo === `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.schoolName || 'SD')}&background=F59E0B&color=fff` ? '' : (profile.schoolLogo || '');
+            document.getElementById('set-schoolLogo').value = profile.schoolLogo === 'https://i.ibb.co.com/1fT4ZJrg/logo-sdn-1-dupaaa.png' ? '' : (profile.schoolLogo || '');
             document.getElementById('set-gasUrl').value = localStorage.getItem(GAS_KEY) || DEFAULT_GAS_URL;
         }
 
