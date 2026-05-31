@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Perangkat Guru</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* === CSS VARIABLES & THEMING === */
+        :root {
+            --primary: #2563EB;
+            --secondary: #60A5FA;
+            --accent: #F59E0B;
+            --bg-body: #f3f4f6;
+            --bg-card: rgba(255, 255, 255, 0.7);
+            --bg-modal: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --border-color: rgba(255, 255, 255, 0.3);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --danger: #ef4444;
+            --success: #10b981;
+            --card-hover: rgba(255, 255, 255, 0.9);
+            --input-bg: #f9fafb;
+        }
+
+        .dark-mode {
+            --primary: #3b82f6;
+            --secondary: #2563EB;
+            --accent: #fbbf24;
+            --bg-body: #111827;
+            --bg-card: rgba(31, 41, 55, 0.7);
+            --bg-modal: #1f2937;
+            --text-main: #f9fafb;
+            --text-muted: #9ca3af;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --card-hover: rgba(31, 41, 55, 0.9);
+            --input-bg: #374151;
+        }
+
+        /* === RESET & BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--text-main);
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(213,100%,73%,0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(213,100%,73%,0.15) 0px, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* === LOADING SCREEN === */
+        #loader {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid var(--text-muted);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* === LAYOUT === */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-bottom: 70px;
+        }
+
+        /* === TOP HEADER === */
+        .top-header {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .profile-compact {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .avatar-sm {
+            width: 45px; height: 45px;
+            border-radius: 0;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+        .profile-text h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.2rem; }
+        .profile-text p { font-size: 0.75rem; color: var(--text-muted); }
+
+        .header-actions .icon-btn {
+            background: transparent;
+            color: var(--text-muted);
+            width: 40px; height: 40px;
+            border-radius: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+        .header-actions .icon-btn:hover { background: var(--primary); color: white; }
+
+        /* Header Clock */
+        .header-clock-container {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(37, 99, 235, 0.05);
+            padding: 0.5rem 1.2rem;
+            border: 1px solid var(--border-color);
+            border-left: 3px solid var(--primary);
+        }
+        .header-clock-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        .header-time {
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            color: var(--primary);
+            line-height: 1.1;
+            letter-spacing: 1px;
+        }
+        .header-date {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .live-indicator {
+            width: 8px;
+            height: 8px;
+            background-color: var(--success);
+            animation: pulse-square 1.5s infinite;
+        }
+        @keyframes pulse-square {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* === BOTTOM NAV === */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0; left: 0; width: 100%;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-around;
+            padding: 0.8rem 0.5rem;
+            padding-bottom: calc(0.8rem + env(safe-area-inset-bottom, 0));
+            z-index: 100;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: 0.3s;
+            flex: 1;
+        }
+        .nav-item i { font-size: 1.2rem; }
+        .nav-item span { font-size: 0.7rem; font-weight: 500; }
+        .nav-item:hover, .nav-item.active { color: var(--primary); }
+        .nav-item.active i { transform: translateY(-2px); }
+
+        /* === MAIN CONTENT === */
+        .main-content {
+            flex: 1;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-radius: 0;
+            padding: 2rem;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .hero-text h1 { font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--primary); }
+        .hero-text p { color: var(--text-muted); }
+        .hero-time {
+            text-align: right;
+            background: rgba(37, 99, 235, 0.1);
+            padding: 1rem 1.5rem;
+            border-radius: 0;
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+        #clock { font-size: 2rem; font-weight: 700; font-family: 'Poppins'; color: var(--primary); }
+        #date { font-size: 0.9rem; color: var(--text-muted); }
+
+        /* Dashboard Profile Card */
+        .dashboard-profile-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            padding: 2rem;
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            box-shadow: var(--glass-shadow);
+            flex-wrap: wrap;
+        }
+        .dp-images {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            flex-shrink: 0;
+        }
+        .dp-avatar {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+            border-radius: 0;
+        }
+        .dp-logo {
+            position: absolute;
+            bottom: -15px;
+            right: -15px;
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            background: var(--bg-modal);
+            border: 2px solid var(--accent);
+            padding: 2px;
+            border-radius: 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .dp-info { flex: 1; min-width: 250px; }
+        .dp-info h2 { font-size: 1.5rem; color: var(--primary); margin-bottom: 0.2rem; }
+        .dp-role { color: var(--accent); font-weight: 600; margin-bottom: 1.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px;}
+        .dp-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+        .dp-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            background: rgba(37, 99, 235, 0.05);
+            padding: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+        .dp-item span { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;}
+        .dp-item strong { font-size: 0.95rem; color: var(--text-main); }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 0;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        .stat-icon {
+            width: 50px; height: 50px;
+            border-radius: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+        }
+        .stat-info h3 { font-size: 1.5rem; margin-bottom: 0.2rem; }
+        .stat-info p { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Toolbar (Search & Add) */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .search-bar {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+        .search-bar i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            border-radius: 0;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            box-shadow: var(--glass-shadow);
+        }
+        .search-bar input:focus { border-color: var(--primary); }
+        
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 0;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); }
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); }
+        .btn-outline:hover { background: var(--primary); color: white; }
+
+        /* Categories / Tabs */
+        .categories {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 0.5rem 0.5rem 1.5rem 0.5rem; /* Padding ekstra untuk bayangan cahaya (glow) */
+            scrollbar-width: none; /* Menyembunyikan scrollbar untuk tampilan lebih bersih */
+            -ms-overflow-style: none;
+        }
+        .categories::-webkit-scrollbar { 
+            display: none; 
+        }
+        
+        .tab-btn {
+            padding: 0.7rem 1.5rem;
+            border-radius: 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            white-space: nowrap;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); /* Transisi lebih halus dan memantul */
+            position: relative;
+            z-index: 1;
+        }
+        
+        .tab-btn:hover {
+            color: var(--primary);
+            border-color: var(--secondary);
+            background: rgba(96, 165, 250, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #ffffff;
+            border-color: transparent;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5); /* Efek glow futuristik */
+            transform: translateY(-4px) scale(1.05);
+            font-weight: 700;
+        }
+
+        /* Grid Cards */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+            padding: 1.5rem;
+            box-shadow: var(--glass-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            background: var(--card-hover);
+            box-shadow: 0 15px 30px -10px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .card-icon {
+            width: 45px; height: 45px;
+            border-radius: 0;
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.3rem;
+        }
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .icon-btn {
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            padding: 0.2rem;
+        }
+        .icon-btn:hover { color: var(--primary); }
+        .icon-btn.fav-btn.active { color: var(--accent); }
+        .icon-btn.del-btn:hover { color: var(--danger); }
+        
+        .card-body h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+        .card-body p { font-size: 0.85rem; color: var(--text-muted); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .card-badge {
+            align-self: flex-start;
+            padding: 0.2rem 0.6rem;
+            background: rgba(96, 165, 250, 0.2);
+            color: var(--primary);
+            border-radius: 0;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .card-footer {
+            margin-top: auto;
+            display: flex;
+            gap: 0.5rem;
+        }
+        .card-footer a {
+            flex: 1;
+            text-align: center;
+            padding: 0.6rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 0;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .card-footer a:hover { background: #1d4ed8; }
+        .card-footer button {
+            padding: 0.6rem;
+            background: var(--bg-body);
+            color: var(--text-main);
+            border-radius: 0;
+            border: 1px solid var(--border-color);
+        }
+
+        /* === MODALS === */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .modal.show { display: flex; opacity: 1; }
+        
+        .modal-content {
+            background: var(--bg-modal);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 0;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: translateY(-20px);
+            transition: transform 0.3s;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal.show .modal-content { transform: translateY(0); }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .close-modal { font-size: 1.5rem; color: var(--text-muted); background: none; border: none; cursor: pointer; }
+        
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.9rem; }
+        .form-control {
+            width: 100%; padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0;
+            background: var(--input-bg);
+            color: var(--text-main);
+            outline: none;
+        }
+        .form-control:focus { border-color: var(--primary); }
+        textarea.form-control { resize: vertical; min-height: 80px; }
+        
+        .modal-footer { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+
+        /* === TOAST NOTIFICATIONS === */
+        #toast-container {
+            position: fixed; bottom: 90px; right: 1rem;
+            z-index: 1001; display: flex; flex-direction: column; gap: 0.5rem;
+        }
+        .toast {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid var(--primary);
+            padding: 1rem 1.5rem;
+            border-radius: 0;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            display: flex; align-items: center; gap: 1rem;
+            animation: slideInRight 0.3s ease-out forwards;
+            font-weight: 500;
+        }
+        .toast.success { border-left-color: var(--success); }
+        .toast.error { border-left-color: var(--danger); }
+        
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateY(-10px); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Scroll to Top */
+        #scrollTop {
+            position: fixed; bottom: 90px; right: 1rem;
+            background: var(--primary); color: white;
+            width: 45px; height: 45px; border-radius: 0;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+            opacity: 0; visibility: hidden; transition: 0.3s;
+            z-index: 99; cursor: pointer;
+        }
+        #scrollTop.show { opacity: 1; visibility: visible; }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .header-clock-container { display: none; } /* Sembunyikan di layar kecil agar tidak sesak */
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .btn { justify-content: center; }
+        }
+
+        /* === PRINT STYLES === */
+        @media print {
+            .top-header, .hero, .toolbar, .categories, #scrollTop, .card-footer, .card-actions, .bottom-nav { display: none !important; }
+            .main-content { margin: 0; padding: 0; }
+            body { background: white; color: black; }
+            .card { break-inside: avoid; border: 1px solid #ccc; box-shadow: none; }
+            .cards-grid { display: block; }
+            .card { margin-bottom: 1rem; }
+        }
+
+        /* Views management */
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease-out; }
+    </style>
+</head>
+<body>
+
+    <!-- Loading Screen -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <h3 style="margin-top: 1rem; color: var(--primary);">Memuat Dashboard...</h3>
+    </div>
+
+    <div class="app-container">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="profile-compact">
+                <img src="https://ui-avatars.com/api/?name=Budi+Santoso&background=2563EB&color=fff" alt="Profil" class="avatar-sm" id="display-avatar">
+                <div class="profile-text">
+                    <h3 id="display-teacherName">Budi Santoso, S.Pd</h3>
+                    <p id="display-nip">NIP. 198001012005011003</p>
+                </div>
+            </div>
+
+            <!-- Header Clock Widget -->
+            <div class="header-clock-container">
+                <div class="live-indicator" title="Waktu Aktual"></div>
+                <div class="header-clock-wrapper">
+                    <span class="header-time" id="header-time">00:00:00</span>
+                    <span class="header-date" id="header-date">Senin, 1 Jan 2026</span>
+                </div>
+            </div>
+
+            <div class="header-actions" style="display: flex; align-items: center; gap: 0.5rem;">
+                <div id="sync-indicator" style="display: none; color: var(--accent);" title="Menyinkronkan ke Cloud...">
+                    <i class="fa-solid fa-cloud-arrow-up fa-fade"></i>
+                </div>
+                <button class="icon-btn" id="themeToggleBtn" title="Mode Gelap/Terang">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- VIEW: DASHBOARD (Home) -->
+            <div id="view-dashboard" class="view-section active">
+                <div class="hero">
+                    <div class="hero-text">
+                        <h1>Selamat Datang, <span id="greet-name">Budi</span>! 👋</h1>
+                        <p>Pusat akses seluruh administrasi dan perangkat pembelajaran dalam satu halaman.</p>
+                    </div>
+                    <div class="hero-time">
+                        <div id="clock">00:00:00</div>
+                        <div id="date">Senin, 1 Januari 2026</div>
+                    </div>
+                </div>
+
+                <!-- NEW: Profile Detail Card -->
+                <div class="dashboard-profile-card" style="margin-top: 1.5rem;">
+                    <div class="dp-images">
+                        <img src="" alt="Avatar" id="dp-avatar" class="dp-avatar">
+                        <img src="" alt="Logo Sekolah" id="dp-logo" class="dp-logo">
+                    </div>
+                    <div class="dp-info">
+                        <h2 id="dp-name">Budi Santoso, S.Pd</h2>
+                        <p class="dp-role" id="dp-position">Guru Kelas</p>
+                        <div class="dp-grid">
+                            <div class="dp-item"><span>NIP / NUPTK</span> <strong id="dp-nip-val">-</strong></div>
+                            <div class="dp-item"><span>Sekolah</span> <strong id="dp-school-val">-</strong></div>
+                            <div class="dp-item"><span>Kelas / Mapel</span> <strong id="dp-class-val">-</strong></div>
+                            <div class="dp-item"><span>Tahun Ajaran</span> <strong id="dp-year-val">-</strong></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-top: 1.5rem;">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-link"></i></div>
+                        <div class="stat-info">
+                            <h3 id="stat-total">0</h3>
+                            <p>Total Link Tersimpan</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--accent); background: rgba(245, 158, 11, 0.1);"><i class="fa-solid fa-star"></i></div>
+                        <div class="stat-info">
+                            <h3 id="stat-fav">0</h3>
+                            <p>Link Favorit</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="color: var(--success); background: rgba(16, 185, 129, 0.1);"><i class="fa-solid fa-folder-open"></i></div>
+                        <div class="stat-info">
+                            <h3 id="stat-cat">0</h3>
+                            <p>Kategori Aktif</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW: SEMUA LINK & KATEGORI -->
+            <div id="view-all-links" class="view-section">
+                <div class="toolbar">
+                    <div class="search-bar">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Cari nama perangkat, modul, deskripsi...">
+                    </div>
+                    <button class="btn btn-outline" id="btnManageCategories">
+                        <i class="fa-solid fa-tags"></i> Kategori
+                    </button>
+                    <button class="btn btn-primary" id="btnAddLink">
+                        <i class="fa-solid fa-plus"></i> Tambah Link
+                    </button>
+                </div>
+
+                <div class="categories" id="categoryTabs">
+                    <!-- Tabs rendered via JS -->
+                </div>
+
+                <div class="cards-grid" id="cardsContainer">
+                    <!-- Cards rendered via JS -->
+                </div>
+            </div>
+
+            <!-- VIEW: SETTINGS -->
+            <div id="view-settings" class="view-section">
+                <div class="hero" style="margin-bottom: 2rem;">
+                    <h2><i class="fa-solid fa-gear"></i> Pengaturan Dashboard</h2>
+                </div>
+                
+                <div class="card" style="max-width: 600px; margin: 0 auto;">
+                    <form id="settingsForm">
+                        <div class="form-group">
+                            <label>Nama Guru (beserta Gelar)</label>
+                            <input type="text" id="set-teacherName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>NIP / NUPTK</label>
+                            <input type="text" id="set-nip" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Jabatan (Contoh: Guru Kelas 5 / Guru Mapel IPA)</label>
+                            <input type="text" id="set-position" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Kelas yang Diajar (Contoh: Kelas 5A)</label>
+                            <input type="text" id="set-className" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Nama Sekolah</label>
+                            <input type="text" id="set-schoolName" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tahun Pelajaran</label>
+                            <input type="text" id="set-year" class="form-control" placeholder="Contoh: 2025/2026">
+                        </div>
+                        <div class="form-group">
+                            <label>URL Foto Profil (Opsional)</label>
+                            <input type="url" id="set-avatar" class="form-control" placeholder="https://...">
+                        </div>
+                        <div class="form-group">
+                            <label>URL Logo Sekolah (Opsional)</label>
+                            <input type="url" id="set-schoolLogo" class="form-control" placeholder="https://...">
+                        </div>
+                        
+                        <hr style="margin: 1.5rem 0; border-color: var(--border-color);">
+                        <h3 style="margin-bottom: 1rem;"><i class="fa-solid fa-cloud"></i> Sinkronisasi Google Sheets</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Masukkan Web App URL dari Google Apps Script untuk menyimpan dan menyinkronkan data secara otomatis (CRUD).</p>
+                        
+                        <div class="form-group">
+                            <label>URL Web App GAS</label>
+                            <input type="url" id="set-gasUrl" class="form-control" placeholder="https://script.google.com/macros/s/.../exec">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Simpan Pengaturan</button>
+                    </form>
+
+                    <hr style="margin: 2rem 0; border-color: var(--border-color);">
+                    
+                    <button type="button" class="btn btn-outline" id="btnSyncGas" style="width: 100%; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fa-solid fa-rotate"></i> Tarik / Muat Ulang Data dari Cloud
+                    </button>
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" id="btnExport" style="flex: 1;">
+                            <i class="fa-solid fa-download"></i> Backup Data (JSON)
+                        </button>
+                        <button class="btn btn-outline" id="btnImportTrigger" style="flex: 1;">
+                            <i class="fa-solid fa-upload"></i> Restore Data
+                        </button>
+                        <input type="file" id="fileImport" accept=".json" style="display: none;">
+                        <button class="btn btn-outline" onclick="window.print()" style="flex: 1;">
+                            <i class="fa-solid fa-print"></i> Cetak PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+        
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <div class="nav-item active" data-view="dashboard">
+                <i class="fa-solid fa-house"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" data-view="all-links">
+                <i class="fa-solid fa-layer-group"></i>
+                <span>Perangkat</span>
+            </div>
+            <div class="nav-item" data-view="favorites">
+                <i class="fa-solid fa-star"></i>
+                <span>Favorit</span>
+            </div>
+            <div class="nav-item" data-view="settings">
+                <i class="fa-solid fa-gear"></i>
+                <span>Profil</span>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Modal Tambah/Edit Link -->
+    <div class="modal" id="linkModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Tambah Perangkat Baru</h3>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <form id="linkForm">
+                <input type="hidden" id="linkId">
+                <div class="form-group">
+                    <label>Nama Perangkat</label>
+                    <input type="text" id="linkName" class="form-control" placeholder="Cth: Modul Ajar Matematika" required>
+                </div>
+                <div class="form-group">
+                    <label>URL / Link (Google Drive, dll)</label>
+                    <input type="url" id="linkUrl" class="form-control" placeholder="https://..." required>
+                </div>
+                <div class="form-group">
+                    <label>Kategori</label>
+                    <select id="linkCategory" class="form-control" required>
+                        <!-- Options akan dirender via JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ikon FontAwesome (Opsional)</label>
+                    <input type="text" id="linkIcon" class="form-control" placeholder="fa-book, fa-file-excel...">
+                    <small style="color: var(--text-muted);">Biarkan kosong untuk ikon default kategori.</small>
+                </div>
+                <div class="form-group">
+                    <label>Deskripsi Singkat</label>
+                    <textarea id="linkDesc" class="form-control" placeholder="Keterangan singkat mengenai file ini..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="btnResetForm">Reset</button>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Kelola Kategori -->
+    <div class="modal" id="categoryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Kelola Kategori</h3>
+                <button class="close-modal" id="closeCategoryModal">&times;</button>
+            </div>
+            <div class="form-group" style="display: flex; gap: 0.5rem;">
+                <input type="text" id="newCategoryName" class="form-control" placeholder="Nama kategori baru..." style="flex: 1;">
+                <button class="btn btn-primary" id="btnSaveCategory">Tambah</button>
+            </div>
+            <div id="manageCategoryList" style="margin-top: 1.5rem; max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); background: var(--bg-body);">
+                <!-- List kategori via JS -->
+            </div>
+            <small style="display: block; margin-top: 1rem; color: var(--text-muted);">* Kategori yang sedang digunakan oleh perangkat/link tidak dapat dihapus.</small>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Scroll to Top -->
+    <div id="scrollTop"><i class="fa-solid fa-arrow-up"></i></div>
+
+    <script>
+        /* =========================================
+           DATA & STATE MANAGEMENT
+           ========================================= */
+        const STORAGE_KEY = 'GURU_DASHBOARD_LINKS';
+        const PROFILE_KEY = 'GURU_DASHBOARD_PROFILE';
+        const THEME_KEY = 'GURU_DASHBOARD_THEME';
+        const CATEGORY_KEY = 'GURU_DASHBOARD_CATEGORIES';
+        const GAS_KEY = 'GURU_DASHBOARD_GAS_URL';
+        const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbyZV8HpgVX_7JkK3RmstNKEcG-n-2F_E9FwgcdEF1RoO0k4DMRLl4F4hfIJ-dT-6ICCqQ/exec';
+
+        // Default Data Mocks
+        const defaultLinks = [];
+
+        const defaultProfile = {
+            teacherName: "Nama Guru",
+            nip: "-",
+            schoolName: "Nama Sekolah",
+            year: "-",
+            avatar: "",
+            position: "-",
+            className: "-",
+            schoolLogo: ""
+        };
+
+        const defaultCategories = ["Pembelajaran", "Administrasi", "Penilaian", "Modul Ajar", "Kalender Pendidikan", "Projek P5", "Perangkat Kurikulum", "Arsip Sekolah"];
+
+        // App State
+        let links = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultLinks;
+        
+        let savedProfile = JSON.parse(localStorage.getItem(PROFILE_KEY));
+        let profile = savedProfile ? Object.assign({}, defaultProfile, savedProfile) : defaultProfile;
+        
+        let userCategories = JSON.parse(localStorage.getItem(CATEGORY_KEY)) || defaultCategories;
+        
+        let currentCategory = "Semua";
+        let currentSearch = "";
+        let currentView = 'dashboard';
+
+        /* =========================================
+           GAS CLOUD SYNC FUNCTIONS
+           ========================================= */
+        
+        async function fetchFromGas() {
+            const gasUrl = localStorage.getItem(GAS_KEY) || DEFAULT_GAS_URL;
+            if (!gasUrl) return false;
+            
+            try {
+                const res = await fetch(gasUrl);
+                const json = await res.json();
+                if (json.status === 'success') {
+                    // Validasi: Jika data kosong, jangan overwrite local array
+                    if (json.data.links && json.data.links.length > 0) links = json.data.links;
+                    if (json.data.categories && json.data.categories.length > 0) userCategories = json.data.categories;
+                    if (json.data.profile && Object.keys(json.data.profile).length > 0) profile = json.data.profile;
+                    
+                    saveLinks();
+                    saveCategories();
+                    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error("Fetch GAS Error", e);
+                return false;
+            }
+        }
+
+        async function gasRequest(payload) {
+            const gasUrl = localStorage.getItem(GAS_KEY) || DEFAULT_GAS_URL;
+            if (!gasUrl) return;
+            
+            const syncIcon = document.getElementById('sync-indicator');
+            if(syncIcon) syncIcon.style.display = 'block';
+            
+            try {
+                await fetch(gasUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+            } catch (e) {
+                console.error("GAS Sync Error", e);
+                showToast("Gagal menyinkronkan ke cloud. Berjalan offline.", "error");
+            } finally {
+                if(syncIcon) syncIcon.style.display = 'none';
+            }
+        }
+
+        /* =========================================
+           INITIALIZATION
+           ========================================= */
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Apply Theme
+            if (localStorage.getItem(THEME_KEY) === 'dark') {
+                document.body.classList.add('dark-mode');
+                updateThemeIcon();
+            }
+
+            // Load Data from GAS if available
+            const hasGasUrl = localStorage.getItem(GAS_KEY) || DEFAULT_GAS_URL;
+            if (hasGasUrl) {
+                const h3Loader = document.getElementById('loader').querySelector('h3');
+                if(h3Loader) h3Loader.textContent = "Menyinkronkan dengan Database Cloud...";
+                await fetchFromGas();
+            }
+
+            // Load Profile
+            updateProfileUI();
+            
+            // Start Clock
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            // Render UI
+            populateCategorySelect();
+            renderCategoryTabs();
+            renderCards();
+            updateDashboardStats();
+
+            // Hide Loader
+            setTimeout(() => {
+                document.getElementById('loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+            }, 800);
+
+            // Populate Settings Form
+            populateSettingsForm();
+        });
+
+        /* =========================================
+           CORE FUNCTIONS (Render & Logic)
+           ========================================= */
+
+        function saveLinks() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
+            updateDashboardStats();
+        }
+
+        function saveCategories() {
+            localStorage.setItem(CATEGORY_KEY, JSON.stringify(userCategories));
+        }
+
+        // --- Render Cards ---
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+
+            // Filter Data
+            let filtered = links.filter(link => {
+                const matchSearch = link.nama.toLowerCase().includes(currentSearch.toLowerCase()) || 
+                                    link.deskripsi.toLowerCase().includes(currentSearch.toLowerCase());
+                
+                if (currentCategory === "Semua") return matchSearch;
+                if (currentCategory === "⭐ Favorit") return link.favorit && matchSearch;
+                
+                return link.kategori === currentCategory && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);">
+                        <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <h3>Belum ada data perangkat.</h3>
+                        <p>Silakan tambah perangkat baru atau ubah kata kunci pencarian.</p>
+                    </div>`;
+                return;
+            }
+
+            filtered.forEach(link => {
+                // Set default icon if empty based on category
+                let iconClass = link.icon;
+                if (!iconClass) {
+                    const iconMap = { "Pembelajaran": "fa-book", "Administrasi": "fa-folder", "Penilaian": "fa-chart-simple", "Modul Ajar": "fa-file-lines", "Kalender Pendidikan": "fa-calendar-days", "Projek P5": "fa-users-gear", "Perangkat Kurikulum": "fa-book-open", "Arsip Sekolah": "fa-box-archive" };
+                    iconClass = iconMap[link.kategori] || "fa-link";
+                }
+
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-icon"><i class="fa-solid ${iconClass}"></i></div>
+                        <div class="card-actions">
+                            <button class="icon-btn fav-btn ${link.favorit ? 'active' : ''}" onclick="toggleFav('${link.id}')" title="Favorit">
+                                <i class="fa-${link.favorit ? 'solid' : 'regular'} fa-star"></i>
+                            </button>
+                            <button class="icon-btn" onclick="editLink('${link.id}')" title="Edit">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="icon-btn del-btn" onclick="deleteLink('${link.id}')" title="Hapus">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-badge">${link.kategori}</div>
+                    <div class="card-body">
+                        <h3>${link.nama}</h3>
+                        <p>${link.deskripsi}</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="${link.link}" target="_blank" rel="noopener noreferrer">Buka Tautan</a>
+                        <button onclick="shareLink('${link.nama}', '${link.link}')" title="Bagikan"><i class="fa-solid fa-share-nodes"></i></button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // --- Render Categories ---
+        function renderCategoryTabs() {
+            const container = document.getElementById('categoryTabs');
+            container.innerHTML = '';
+            
+            const allTabs = ["Semua", ...userCategories, "⭐ Favorit"];
+            
+            allTabs.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${currentCategory === cat ? 'active' : ''}`;
+                btn.textContent = cat;
+                btn.onclick = () => {
+                    currentCategory = cat;
+                    // Update active class
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderCards();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // --- Dashboard Stats & Chart ---
+        function updateDashboardStats() {
+            document.getElementById('stat-total').textContent = links.length;
+            document.getElementById('stat-fav').textContent = links.filter(l => l.favorit).length;
+            
+            // Count unique categories used
+            const usedCats = new Set(links.map(l => l.kategori));
+            document.getElementById('stat-cat').textContent = usedCats.size;
+        }
+
+        /* =========================================
+           CRUD OPERATIONS
+           ========================================= */
+
+        // --- CATEGORY MANAGEMENT ---
+        const categoryModal = document.getElementById('categoryModal');
+        
+        document.getElementById('btnManageCategories').onclick = () => {
+            renderCategoryManageList();
+            categoryModal.classList.add('show');
+        };
+
+        document.getElementById('closeCategoryModal').onclick = () => categoryModal.classList.remove('show');
+
+        function renderCategoryManageList() {
+            const list = document.getElementById('manageCategoryList');
+            list.innerHTML = '';
+            userCategories.forEach(cat => {
+                const item = document.createElement('div');
+                item.style = 'display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-color);';
+                
+                // Cek apakah dipakai
+                const inUseCount = links.filter(l => l.kategori === cat).length;
+                const badge = inUseCount > 0 ? `<span class="card-badge" style="background:transparent; border:1px solid var(--primary); padding:2px 6px; font-size:0.7rem;">Dipakai (${inUseCount})</span>` : '';
+
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:0.8rem;">
+                        <span style="font-weight: 500;">${cat}</span>
+                        ${badge}
+                    </div>
+                    <button class="icon-btn del-btn" onclick="deleteCategory('${cat}')" title="Hapus Kategori">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                list.appendChild(item);
+            });
+        }
+
+        document.getElementById('btnSaveCategory').onclick = () => {
+            const input = document.getElementById('newCategoryName');
+            const val = input.value.trim();
+            if(!val) return;
+            
+            if(userCategories.some(c => c.toLowerCase() === val.toLowerCase())) {
+                showToast('Kategori dengan nama ini sudah ada!', 'error');
+                return;
+            }
+            if(val === 'Semua' || val === '⭐ Favorit') {
+                showToast('Nama kategori ini tidak diizinkan!', 'error');
+                return;
+            }
+
+            userCategories.push(val);
+            saveCategories();
+            input.value = '';
+            
+            renderCategoryManageList();
+            renderCategoryTabs();
+            populateCategorySelect();
+            
+            gasRequest({ action: 'add_category', name: val });
+            showToast('Kategori berhasil ditambahkan!', 'success');
+        };
+
+        window.deleteCategory = function(cat) {
+            const isInUse = links.some(l => l.kategori === cat);
+            if(isInUse) {
+                showToast('Gagal! Kategori sedang digunakan.', 'error');
+                return;
+            }
+            if(confirm(`Apakah Anda yakin ingin menghapus kategori "${cat}"?`)) {
+                userCategories = userCategories.filter(c => c !== cat);
+                if(currentCategory === cat) currentCategory = 'Semua';
+                
+                saveCategories();
+                renderCategoryManageList();
+                renderCategoryTabs();
+                populateCategorySelect();
+                renderCards();
+                
+                gasRequest({ action: 'delete_category', name: cat });
+                showToast('Kategori dihapus.', 'success');
+            }
+        };
+
+        function populateCategorySelect() {
+            const select = document.getElementById('linkCategory');
+            select.innerHTML = '';
+            userCategories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                select.appendChild(opt);
+            });
+        }
+
+        // --- LINK MANAGEMENT ---
+        const modal = document.getElementById('linkModal');
+        const form = document.getElementById('linkForm');
+
+        document.getElementById('btnAddLink').onclick = () => {
+            form.reset();
+            document.getElementById('linkId').value = '';
+            document.getElementById('modalTitle').textContent = 'Tambah Perangkat Baru';
+            modal.classList.add('show');
+        };
+
+        document.getElementById('closeModal').onclick = () => modal.classList.remove('show');
+        document.getElementById('btnResetForm').onclick = () => form.reset();
+
+        form.onsubmit = (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('linkId').value;
+            const linkData = {
+                id: id || Date.now().toString(),
+                nama: document.getElementById('linkName').value,
+                link: document.getElementById('linkUrl').value,
+                kategori: document.getElementById('linkCategory').value,
+                icon: document.getElementById('linkIcon').value.replace('fa-', '').replace('fas ', '').replace('fa-solid ', '').trim() || '', // sanitize
+                deskripsi: document.getElementById('linkDesc').value,
+                favorit: id ? links.find(l => l.id === id).favorit : false,
+                tanggal: id ? links.find(l => l.id === id).tanggal : new Date().toISOString()
+            };
+
+            // Format icon properly if user typed just the name
+            if(linkData.icon && !linkData.icon.startsWith('fa-')) {
+                linkData.icon = 'fa-' + linkData.icon;
+            }
+
+            let gasAction = 'create_link';
+
+            if (id) {
+                // Edit
+                const index = links.findIndex(l => l.id === id);
+                links[index] = linkData;
+                gasAction = 'update_link';
+                showToast('Perangkat berhasil diperbarui!', 'success');
+            } else {
+                // Add
+                links.push(linkData);
+                showToast('Perangkat berhasil ditambahkan!', 'success');
+            }
+
+            saveLinks();
+            renderCards();
+            modal.classList.remove('show');
+            
+            // Push ke Cloud
+            gasRequest({ action: gasAction, data: linkData });
+        };
+
+        function editLink(id) {
+            const link = links.find(l => l.id === id);
+            if(link) {
+                document.getElementById('linkId').value = link.id;
+                document.getElementById('linkName').value = link.nama;
+                document.getElementById('linkUrl').value = link.link;
+                document.getElementById('linkCategory').value = link.kategori;
+                document.getElementById('linkIcon').value = link.icon;
+                document.getElementById('linkDesc').value = link.deskripsi;
+                
+                document.getElementById('modalTitle').textContent = 'Edit Perangkat';
+                modal.classList.add('show');
+            }
+        }
+
+        function deleteLink(id) {
+            if(confirm('Apakah Anda yakin ingin menghapus perangkat ini?')) {
+                links = links.filter(l => l.id !== id);
+                saveLinks();
+                renderCards();
+                
+                gasRequest({ action: 'delete_link', id: id });
+                showToast('Perangkat dihapus.', 'success');
+            }
+        }
+
+        function toggleFav(id) {
+            const link = links.find(l => l.id === id);
+            if(link) {
+                link.favorit = !link.favorit;
+                saveLinks();
+                renderCards();
+                
+                gasRequest({ action: 'update_link', data: link });
+                
+                if(currentCategory === "⭐ Favorit" && !link.favorit) {
+                     // Auto remove from view if in fav tab
+                } else {
+                    showToast(link.favorit ? 'Ditambahkan ke Favorit' : 'Dihapus dari Favorit', 'success');
+                }
+            }
+        }
+
+        /* =========================================
+           EVENT LISTENERS & UI INTERACTIONS
+           ========================================= */
+
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            currentSearch = e.target.value;
+            renderCards();
+        });
+
+        // Navigation (Switching Views)
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Remove active from all navs
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                item.classList.add('active');
+
+                // Hide all views
+                document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+                
+                // Show target view
+                const targetView = item.getAttribute('data-view');
+                currentView = targetView;
+                
+                if (targetView === 'favorites') {
+                    // Redirect view to all-links for favorites
+                    document.getElementById('view-all-links').classList.add('active');
+                    currentCategory = "⭐ Favorit";
+                    renderCategoryTabs();
+                    renderCards();
+                } else {
+                    const viewEl = document.getElementById(`view-${targetView}`);
+                    if (viewEl) viewEl.classList.add('active');
+
+                    // Specific logic per view
+                    if(targetView === 'all-links') {
+                        currentCategory = "Semua";
+                        renderCategoryTabs();
+                        renderCards();
+                    }
+                }
+            });
+        });
+
+        // Theme Toggle
+        document.getElementById('themeToggleBtn').onclick = () => {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        };
+
+        function updateThemeIcon() {
+            const btn = document.getElementById('themeToggleBtn');
+            const isDark = document.body.classList.contains('dark-mode');
+            btn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+        }
+
+        // Clock
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+            
+            document.getElementById('clock').textContent = timeStr;
+            document.getElementById('date').textContent = dateStr;
+
+            // Update Header Clock
+            const headerTime = document.getElementById('header-time');
+            const headerDate = document.getElementById('header-date');
+            if (headerTime) headerTime.textContent = timeStr;
+            if (headerDate) headerDate.textContent = dateStr;
+        }
+
+        // Share Link (Web Share API)
+        function shareLink(title, url) {
+            if (navigator.share) {
+                navigator.share({
+                    title: `Perangkat Guru: ${title}`,
+                    text: `Akses perangkat pembelajaran: ${title}`,
+                    url: url
+                }).catch(console.error);
+            } else {
+                // Fallback copy to clipboard
+                navigator.clipboard.writeText(url).then(() => {
+                    showToast('Link disalin ke clipboard!', 'success');
+                });
+            }
+        }
+
+        // Scroll To Top
+        window.onscroll = function() {
+            const btn = document.getElementById("scrollTop");
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                btn.classList.add("show");
+            } else {
+                btn.classList.remove("show");
+            }
+        };
+        document.getElementById('scrollTop').onclick = () => {
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        };
+
+        /* =========================================
+           SETTINGS & DATA BACKUP
+           ========================================= */
+        
+        function updateProfileUI() {
+            const elTeacherName = document.getElementById('display-teacherName');
+            const elNip = document.getElementById('display-nip');
+            const elSchoolName = document.getElementById('display-schoolName');
+            const elYear = document.getElementById('display-year');
+            const elAvatar = document.getElementById('display-avatar');
+            const elGreetName = document.getElementById('greet-name');
+
+            if (elTeacherName) elTeacherName.textContent = profile.teacherName;
+            if (elNip) elNip.textContent = profile.nip;
+            if (elSchoolName) elSchoolName.textContent = profile.schoolName;
+            if (elYear) elYear.textContent = profile.year;
+            
+            // Set Avatar (Fallback if empty)
+            const avatarUrl = profile.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.teacherName)}&background=2563EB&color=fff`;
+            if (elAvatar) {
+                elAvatar.src = avatarUrl;
+            }
+            
+            // Greet first name
+            if (elGreetName) {
+                const firstName = profile.teacherName.split(' ')[0].replace(',', '');
+                elGreetName.textContent = firstName;
+            }
+
+            // Dashboard Detail Profile
+            const dpName = document.getElementById('dp-name');
+            const dpPosition = document.getElementById('dp-position');
+            const dpNip = document.getElementById('dp-nip-val');
+            const dpSchool = document.getElementById('dp-school-val');
+            const dpClass = document.getElementById('dp-class-val');
+            const dpYear = document.getElementById('dp-year-val');
+            const dpAvatar = document.getElementById('dp-avatar');
+            const dpLogo = document.getElementById('dp-logo');
+
+            if (dpName) dpName.textContent = profile.teacherName;
+            if (dpPosition) dpPosition.textContent = profile.position || '-';
+            if (dpNip) dpNip.textContent = profile.nip || '-';
+            if (dpSchool) dpSchool.textContent = profile.schoolName || '-';
+            if (dpClass) dpClass.textContent = profile.className || '-';
+            if (dpYear) dpYear.textContent = profile.year || '-';
+            if (dpAvatar) dpAvatar.src = avatarUrl;
+            
+            if (dpLogo) {
+                const logoUrl = profile.schoolLogo || `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.schoolName || 'SD')}&background=F59E0B&color=fff`;
+                dpLogo.src = logoUrl;
+            }
+        }
+
+        function populateSettingsForm() {
+            document.getElementById('set-teacherName').value = profile.teacherName || '';
+            document.getElementById('set-nip').value = profile.nip || '';
+            document.getElementById('set-position').value = profile.position || '';
+            document.getElementById('set-className').value = profile.className || '';
+            document.getElementById('set-schoolName').value = profile.schoolName || '';
+            document.getElementById('set-year').value = profile.year || '';
+            document.getElementById('set-avatar').value = profile.avatar === `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.teacherName)}&background=2563EB&color=fff` ? '' : (profile.avatar || '');
+            document.getElementById('set-schoolLogo').value = profile.schoolLogo === `https://ui-avatars.com/api/?name=${encodeURIComponent(profile.schoolName || 'SD')}&background=F59E0B&color=fff` ? '' : (profile.schoolLogo || '');
+            document.getElementById('set-gasUrl').value = localStorage.getItem(GAS_KEY) || DEFAULT_GAS_URL;
+        }
+
+        document.getElementById('settingsForm').onsubmit = (e) => {
+            e.preventDefault();
+            
+            const newGasUrl = document.getElementById('set-gasUrl').value;
+            localStorage.setItem(GAS_KEY, newGasUrl);
+            
+            profile = {
+                teacherName: document.getElementById('set-teacherName').value,
+                nip: document.getElementById('set-nip').value,
+                position: document.getElementById('set-position').value,
+                className: document.getElementById('set-className').value,
+                schoolName: document.getElementById('set-schoolName').value,
+                year: document.getElementById('set-year').value,
+                avatar: document.getElementById('set-avatar').value,
+                schoolLogo: document.getElementById('set-schoolLogo').value
+            };
+            localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+            updateProfileUI();
+            
+            gasRequest({ action: 'update_profile', data: profile });
+            showToast('Profil berhasil diperbarui!', 'success');
+        };
+
+        // Sync GAS Button
+        document.getElementById('btnSyncGas').onclick = async () => {
+            const btn = document.getElementById('btnSyncGas');
+            const originalText = btn.innerHTML;
+            if(!(localStorage.getItem(GAS_KEY) || DEFAULT_GAS_URL)) {
+                showToast('Harap masukkan URL GAS terlebih dahulu pada input di atas', 'error');
+                return;
+            }
+            
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyinkronkan...';
+            btn.disabled = true;
+            
+            const success = await fetchFromGas();
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            
+            if(success) {
+                updateProfileUI();
+                populateCategorySelect();
+                if(currentView === 'all-links' || currentView === 'favorites') {
+                    renderCategoryTabs();
+                    renderCards();
+                }
+                updateDashboardStats();
+                showToast('Data berhasil disinkronkan dari Cloud!', 'success');
+            } else {
+                showToast('Gagal menarik data. Pastikan URL GAS benar.', 'error');
+            }
+        };
+
+        // Export Data
+        document.getElementById('btnExport').onclick = () => {
+            const data = { profile: profile, links: links, categories: userCategories };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", "backup_dashboard_guru_" + new Date().getTime() + ".json");
+            document.body.appendChild(downloadAnchorNode); // required for firefox
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+            showToast('Data berhasil didownload.', 'success');
+        };
+
+        // Import Data
+        document.getElementById('btnImportTrigger').onclick = () => {
+            document.getElementById('fileImport').click();
+        };
+
+        document.getElementById('fileImport').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const contents = JSON.parse(e.target.result);
+                    if(contents.links && contents.profile) {
+                        links = contents.links;
+                        profile = contents.profile;
+                        userCategories = contents.categories || defaultCategories; // Load kategori jika ada
+                        
+                        saveLinks();
+                        saveCategories();
+                        localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+                        
+                        updateProfileUI();
+                        populateSettingsForm();
+                        updateDashboardStats();
+                        populateCategorySelect();
+                        if(currentView === 'all-links' || currentView === 'favorites') {
+                            renderCategoryTabs();
+                            renderCards();
+                        }
+                        
+                        showToast('Data berhasil direstore!', 'success');
+                    } else {
+                        showToast('Format file tidak sesuai!', 'error');
+                    }
+                } catch(err) {
+                    showToast('Gagal membaca file JSON!', 'error');
+                }
+            };
+            reader.readAsText(file);
+            // reset input
+            this.value = '';
+        });
+
+        /* =========================================
+           UTILITIES (Toast)
+           ========================================= */
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-circle-exclamation';
+            const color = type === 'success' ? 'var(--success)' : 'var(--danger)';
+            
+            toast.innerHTML = `<i class="fa-solid ${icon}" style="color: ${color}; font-size: 1.2rem;"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease-in forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>
